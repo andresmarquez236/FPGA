@@ -1,0 +1,70 @@
+LIBRARY ieee;
+USE ieee.std_logic_1164.all;
+USE ieee.numeric_std.all;
+----------------------------------------------------------------
+ENTITY Conector_VGA IS
+	PORT	(	clk	:	IN		STD_LOGIC;
+				reset	:	IN    STD_LOGIC;
+				hsync	:	OUT	STD_LOGIC;
+				vsync	:	OUT	STD_LOGIC;
+				R     :	OUT	STD_LOGIC;
+				G		:	OUT	STD_LOGIC;
+				B		:	OUT	STD_LOGIC);
+				
+END ENTITY Conector_VGA;
+----------------------------------------------------------------
+ARCHITECTURE functional OF Conector_VGA IS	
+		
+		SIGNAL	h_cuenta_s	:	STD_LOGIC_VECTOR(10 DOWNTO 0);
+		SIGNAL	hsync_s		:	STD_LOGIC;
+		SIGNAL	v_cuenta_s	:	STD_LOGIC_VECTOR(9 DOWNTO 0);
+		SIGNAL	vsync_s		:	STD_LOGIC;
+		SIGNAL	blank_s		:	STD_LOGIC;		
+
+
+BEGIN 
+
+	Contador_horizontal: ENTITY WORK.contador_horizontal
+			   PORT MAP(	clk50MHz		=> clk,
+								reset 		=> reset,
+								h_cuenta		=> h_cuenta_s);			
+
+
+	Generador_horizontal: ENTITY WORK.generador_hsync
+			   PORT MAP(	clk50MHz		=> clk,
+								reset 		=> reset,
+								h_cuenta    => h_cuenta_s,
+								hsync			=> hsync_s);
+								
+	
+	Contador_vertical: ENTITY WORK.contador_vertical
+			   PORT MAP(	clk50MHz		=> clk,
+								reset 		=> reset,
+								h_sync		=> h_sync_s,
+								v_cuenta		=> v_cuenta_s);
+								
+	Generador_vertical: ENTITY WORK.generador_vsync
+			   PORT MAP(	clk50MHz		=> clk,
+								reset 		=> reset,
+								v_cuenta    => v_cuenta_s,
+								vsync			=> vsync_s);
+					
+				
+	Generador_blank: ENTITY WORK.generador_blank
+			   PORT MAP(	hctr		   => h_cuenta_s,
+								vctr		   => v_cuenta_s,
+								blank			=>	blank_s);
+								
+	Generador_imagen: ENTITY WORK.image_generator
+			   PORT MAP(	clk50MHz		=> clk,
+								reset 		=> reset,
+								hctr			=> h_cuenta_s,
+								vctr			=> v_cuenta_s,
+								blank			=>	blank_s,
+								R				=> R,
+								G				=> G,
+								B				=> B);
+hsync <= hsync_s;
+vsync <= vsync_s;		
+					
+END ARCHITECTURE functional;
